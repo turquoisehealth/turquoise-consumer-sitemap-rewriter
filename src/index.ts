@@ -1,9 +1,7 @@
-import env from "cloudflare:workers";
-
 const sitemapUrl = "https://marketing.turquoise.health/sitemap.xml";
 
 export default {
-	async fetch(request: Request) {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		function MethodNotAllowed(request: Request) {
 			return new Response(`Method ${request.method} not allowed.`, {
 				status: 405,
