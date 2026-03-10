@@ -1,18 +1,29 @@
 const sitemapUrl = "https://marketing.turquoise.health/sitemap.xml";
 
+class UrlRewriter {
+	buffer: string;
+
+	element(element: Element) {
+		this.buffer = '';
+	}
+	text(text: Text) {
+		this.buffer += text.text
+
+		if (text.lastInTextNode) {
+			// We're done with this text node -- search and replace and reset.
+			text.replace(this.buffer.replace("marketing.turquoise.health", "turquoise.health"))
+			this.buffer = ''
+		} else {
+			// This wasn't the last text chunk, and we don't know if this chunk
+			// will participate in a match. We must remove it so the client
+			// doesn't see it.
+			text.remove()
+		}
+	}
+}
+
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-		function MethodNotAllowed(request: Request) {
-			return new Response(`Method ${request.method} not allowed.`, {
-				status: 405,
-				headers: {
-					Allow: "GET",
-				},
-			});
-		}
-		// Only GET requests work with this proxy.
-		if (request.method !== "GET") return MethodNotAllowed(request);
-
 		// Best practice is to always use the original request to construct the new request
 		// to clone all the attributes. Applying the URL also requires a constructor
 		// since once a Request has been constructed, its URL is immutable.
@@ -23,10 +34,8 @@ export default {
 
 		try {
 			const response = await fetch(newRequest);
-
-			// Copy over the response
-			const modifiedResponse = new Response(response.body, response);
-
+			const rewriter = new HTMLRewriter().on("loc", new UrlRewriter())
+			const modifiedResponse = rewriter.transform(response)
 			// Delete the set-cookie from the response so it doesn't override existing cookies
 			modifiedResponse.headers.delete("set-cookie");
 
