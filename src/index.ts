@@ -6,6 +6,7 @@ class UrlRewriter {
 
 	constructor(newHost: string) {
 		this.newHost = newHost;
+		console.log(`constructor: ${this.newHost}`);
 		this.buffer = '';
 	}
 
@@ -17,6 +18,7 @@ class UrlRewriter {
 
 		if (text.lastInTextNode) {
 			// We're done with this text node -- search and replace and reset.
+			console.log(this.newHost);
 			text.replace(this.buffer.replace("marketing.turquoise.health", this.newHost))
 		} else {
 			// This wasn't the last text chunk, and we don't know if this chunk
@@ -30,7 +32,11 @@ class UrlRewriter {
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext) {
 		const url = URL.parse(request.url);
-		console.log(`Incoming request: ${request.url}`, url, url?.host);
+		console.log("fetch")
+		console.log(request.url);
+		console.log(url);
+		console.log(url?.host);
+		console.log("start")
 		// existing request is immutable, clone it to change the URL and headers
 		const newRequest = new Request(sitemapUrl, request);
 		newRequest.headers.set("cf-access-client-id", env.CF_ACCESS_CLIENT_ID);
@@ -38,7 +44,7 @@ export default {
 
 		try {
 			const response = await fetch(newRequest);
-			const rewriter = new HTMLRewriter().on("loc", new UrlRewriter(url?.host || "turquoise.health"))
+			const rewriter = new HTMLRewriter().on("loc", new UrlRewriter(url?.host ?? "turquoise.health"))
 			return rewriter.transform(response)
 		} catch (e) {
 			return new Response(JSON.stringify({ error: e.message }), {
