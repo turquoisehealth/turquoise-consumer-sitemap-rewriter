@@ -41,6 +41,11 @@ export default {
 
 		try {
 			const response = await fetch(newRequest);
+			if (currentHost === replaceHost) {
+				return response
+			}
+
+			// rewrite the URLs in the text portion of the `<loc>` elements
 			const rewriter = new HTMLRewriter().on("loc", new UrlRewriter(currentHost));
 			return rewriter.transform(response);
 		} catch (e) {
