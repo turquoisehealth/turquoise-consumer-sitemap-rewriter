@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "turquoise-marketing-sitemap-router",
+	"name": "turquoise-consumer-sitemap-rewriter",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-04-03",
 	"observability": {
