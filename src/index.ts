@@ -1,5 +1,4 @@
-const sitemapUrl = "https://marketing.turquoise.health/sitemap.xml";
-const replaceHost = "marketing.turquoise.health"
+const hostMatch: RegExp = /consumer.*\.turquoise\.health/;
 
 class UrlRewriter {
 	buffer: string;
@@ -19,7 +18,7 @@ class UrlRewriter {
 
 		if (text.lastInTextNode) {
 			// We're done with this text node -- search and replace and reset.
-			text.replace(this.buffer.replace(replaceHost, this.currentHost))
+			text.replace(this.buffer.replace(hostMatch, this.currentHost))
 		} else {
 			// This wasn't the last text chunk, and we don't know if this chunk
 			// will participate in a match. We must remove it so the client
@@ -34,14 +33,9 @@ export default {
 		const url = URL.parse(request.url),
 			currentHost = url?.host ?? "turquoise.health";
 
-		// existing request is immutable, clone it to change the URL and headers
-		const newRequest = new Request(sitemapUrl, request);
-		newRequest.headers.set("cf-access-client-id", env.CF_ACCESS_CLIENT_ID);
-		newRequest.headers.set("cf-access-client-secret", env.CF_ACCESS_CLIENT_SECRET);
-
 		try {
-			const response = await fetch(newRequest);
-			if (currentHost === replaceHost) {
+			const response = await fetch(request);
+			if (hostMatch.test(currentHost)) {
 				return response
 			}
 
